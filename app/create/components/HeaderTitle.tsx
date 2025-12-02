@@ -14,9 +14,9 @@ export default function HeaderTitle() {
   const [phase, setPhase] = useState<"typing" | "waiting" | "deleting">("typing");
 
   // 타이핑 속도 & 딜레이 설정
-  const typingSpeed = 70;      // 글자 나타나는 속도
+  const typingSpeed = 65;      // 글자 나타나는 속도
   const deletingSpeed = 50;    // 글자 지워지는 속도
-  const displayDuration = 5000; // 문구 유지 시간 5초
+  const displayDuration = 3500; // 문구 유지 시간
 
   useEffect(() => {
     const current = texts[index];
