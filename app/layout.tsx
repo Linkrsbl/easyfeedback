@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import { ReactNode } from "react";
+import "@excalidraw/excalidraw/dist/excalidraw.min.css";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
