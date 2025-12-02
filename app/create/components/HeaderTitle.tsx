@@ -57,23 +57,25 @@ export default function HeaderTitle() {
 
   return (
     <h1
-      className="
-        text-xl font-semibold tracking-tight text-gray-900
-        min-h-[32px] select-none
-      "
+      className={
+        "text-xl font-semibold tracking-tight text-gray-900 min-h-[32px] select-none"
+      }
     >
       <span className="border-r-2 border-gray-400 pr-1 animate-blink">
         {displayText}
       </span>
 
-      {/* 커서 blink 애니메이션 */}
       <style jsx>{`
         .animate-blink {
-          animation: blinkCursor 0.8s steps(2) infinite;
+          animation: 0.8s steps(2, end) infinite blinkCursor;
         }
         @keyframes blinkCursor {
-          0%, 100% { border-color: transparent; }
-          50% { border-color: #555; }
+          0%, 100% {
+            border-color: transparent;
+          }
+          50% {
+            border-color: #555;
+          }
         }
       `}</style>
     </h1>
