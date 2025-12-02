@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import {
   exportToBlob,
-  type ExcalidrawImperativeAPI,
 } from "@excalidraw/excalidraw";
 
 // TS에서 ref 관련 오류가 나지 않도록 any로 캐스팅
@@ -27,7 +26,7 @@ export default function ExcalidrawModal({
   baseImage,
   onApply,
 }: ExcalidrawModalProps) {
-  const excalRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const excalRef = useRef<any>(null);
 
   // 배경 이미지 세팅 + 자동 스케일링
   useEffect(() => {
