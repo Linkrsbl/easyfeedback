@@ -9,9 +9,15 @@ import GenerateButton from "./components/GenerateButton";
 import FeedbackResult from "./components/FeedbackResult";
 import HistoryModal from "./components/HistoryModal";
 import HeaderTitle from "./components/HeaderTitle";
+import EditImageButton from "./components/EditImageButton";
+import ExcalidrawModal from "./components/ExcalidrawModal";
 
 export default function CreatePage() {
+  // 현재 썸네일로 보여줄 이미지 (원본 또는 편집본)
   const [image, setImage] = useState<string | null>(null);
+  // 업로드된 원본 이미지 (편집을 여러 번 하더라도 기준이 되는 값)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
   const [feedbackRaw, setFeedbackRaw] = useState("");
   const [mode, setMode] = useState<"messenger" | "email">("messenger");
 
@@ -23,6 +29,9 @@ export default function CreatePage() {
   const [result, setResult] = useState<string | null>(null);
 
   const [isHistoryOpen, setHistoryOpen] = useState(false);
+
+  // 이미지 편집 모달
+  const [isEditorOpen, setEditorOpen] = useState(false);
 
   // 🔥 토스트 상태
   const [toast, setToast] = useState(false);
@@ -97,6 +106,7 @@ export default function CreatePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         body: JSON.stringify({
+          // 현재 화면에 보이는 이미지를 그대로 사용 (편집 반영)
           image,
           feedback_raw: feedbackRaw,
           mode,
@@ -129,6 +139,7 @@ export default function CreatePage() {
 
   const handleLoadRecord = (record: any) => {
     setImage(record.image);
+    setUploadedImage(record.image); // 불러온 기록 기준으로 다시 편집 가능
     setFeedbackRaw(record.raw);
     setMode(record.mode);
     setResult(record.result);
@@ -137,7 +148,6 @@ export default function CreatePage() {
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-6 bg-white text-black">
-
       {/* ---------------- Header ---------------- */}
       <header
         className="
@@ -165,8 +175,20 @@ export default function CreatePage() {
 
       {/* ---------------- Card ---------------- */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6">
+        {/* 이미지 업로드 + 썸네일 */}
+        <ImageUpload
+          image={image}
+          setImage={(value: string | null) => {
+            setImage(value);
+            setUploadedImage(value);
+          }}
+        />
 
-        <ImageUpload image={image} setImage={setImage} />
+        {/* 이미지 편집 버튼 */}
+        <EditImageButton
+          disabled={!uploadedImage}
+          onClick={() => uploadedImage && setEditorOpen(true)}
+        />
 
         <FeedbackEditor value={feedbackRaw} onChange={setFeedbackRaw} />
 
@@ -181,16 +203,27 @@ export default function CreatePage() {
         <FeedbackResult
           result={result}
           onCopy={() => navigator.clipboard.writeText(result || "")}
-          onCopySuccess={showToast}     // 🔥 여기서 토스트 작동!
+          onCopySuccess={showToast} // 🔥 여기서 토스트 작동!
           onReset={() => setResult(null)}
         />
-
       </div>
 
       <HistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setHistoryOpen(false)}
         onLoadRecord={handleLoadRecord}
+      />
+
+      {/* Excalidraw 이미지 편집 모달 */}
+      <ExcalidrawModal
+        isOpen={isEditorOpen}
+        onClose={() => setEditorOpen(false)}
+        baseImage={uploadedImage}
+        onApply={(dataUrl: string) => {
+          setImage(dataUrl);         // 썸네일 교체
+          setUploadedImage(dataUrl); // 이후 다시 편집해도 편집본 기준
+          setEditorOpen(false);
+        }}
       />
 
       {/* ---------------- Toast ---------------- */}
