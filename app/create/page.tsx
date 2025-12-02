@@ -11,10 +11,15 @@ import GenerateButton from "./components/GenerateButton";
 import FeedbackResult from "./components/FeedbackResult";
 import HistoryModal from "./components/HistoryModal";
 import HeaderTitle from "./components/HeaderTitle";
-
-// 🔥 새로 추가
 import EditImageButton from "./components/EditImageButton";
-import ExcalidrawModal from "./components/ExcalidrawModal";
+
+import dynamic from "next/dynamic";
+
+// ✅ SSR 완전 차단
+const ExcalidrawModal = dynamic(
+  () => import("./components/ExcalidrawModal"),
+  { ssr: false }
+);
 
 export default function CreatePage() {
   const [image, setImage] = useState<string | null>(null);
