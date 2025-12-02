@@ -24,7 +24,7 @@ export default function ExcalidrawModal({
 
   /**
    * 모달이 열리고 image가 있을 때
-   * 업로드된 이미지를 캔버스에 넣어서 보여주기
+   * Excalidraw가 완전히 준비된 후(readyPromise) 업로드 이미지를 캔버스에 삽입
    */
   useEffect(() => {
     if (!isOpen || !image) return;
@@ -36,6 +36,13 @@ export default function ExcalidrawModal({
 
     const insertImage = async () => {
       try {
+        // 1) Excalidraw 내부 초기화가 끝날 때까지 기다림
+        if (api.readyPromise && typeof api.readyPromise.then === "function") {
+          await api.readyPromise;
+        }
+        if (cancelled) return;
+
+        // 2) 이미지 로드
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.src = image;
@@ -46,10 +53,10 @@ export default function ExcalidrawModal({
         });
         if (cancelled) return;
 
-        // 기존 요소 제거
+        // 3) 기존 요소 제거
         api.updateScene({ elements: [] });
 
-        // 캔버스 기준 사이즈(대략값)
+        // 4) 캔버스 크기 기준으로 80% 안에 들어오게 스케일링
         const appState = api.getAppState ? api.getAppState() : {};
         const canvasW = appState.width ?? 900;
         const canvasH = appState.height ?? 600;
@@ -63,7 +70,7 @@ export default function ExcalidrawModal({
         w *= ratio;
         h *= ratio;
 
-        // 대략 중앙에 배치
+        // 5) 가운데 배치 (스크롤, 줌은 대략 무시한 심플 버전)
         const x = canvasW / 2 - w / 2;
         const y = canvasH / 2 - h / 2;
 
@@ -109,7 +116,7 @@ export default function ExcalidrawModal({
           elements: [element],
         });
 
-        // 가능하면 히스토리 초기화
+        // 6) 히스토리 초기화(undo 처음 상태를 여기로)
         api.history?.clear?.();
       } catch (err) {
         console.error("이미지 삽입 오류:", err);
@@ -133,16 +140,20 @@ export default function ExcalidrawModal({
       return;
     }
 
-    const elements = api.getSceneElements ? api.getSceneElements() : [];
-    const files = api.getFiles ? api.getFiles() : undefined;
-
-    if (!elements || elements.length === 0) {
-      // 아무것도 없으면 그냥 닫기
-      onClose();
-      return;
-    }
-
     try {
+      // Excalidraw 준비 안 끝났다면 먼저 기다림 (안전장치)
+      if (api.readyPromise && typeof api.readyPromise.then === "function") {
+        await api.readyPromise;
+      }
+
+      const elements = api.getSceneElements ? api.getSceneElements() : [];
+      const files = api.getFiles ? api.getFiles() : undefined;
+
+      if (!elements || elements.length === 0) {
+        onClose();
+        return;
+      }
+
       const appState = api.getAppState ? api.getAppState() : {};
 
       const blob = await exportToBlob({
