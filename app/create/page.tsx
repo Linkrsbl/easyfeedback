@@ -1,3 +1,5 @@
+//app/create/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -218,8 +220,9 @@ export default function CreatePage() {
 
       {/* 🔥 Excalidraw Modal 연결 */}
       <ExcalidrawModal
-        open={isExcalidrawOpen}
+        isOpen={isExcalidrawOpen}
         onClose={() => setExcalidrawOpen(false)}
+        image={image}
         onSave={handleSaveEditedImage}
       />
 
