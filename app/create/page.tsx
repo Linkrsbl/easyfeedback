@@ -8,6 +8,7 @@ import OutputTypeSelect from "./components/OutputTypeSelect";
 import GenerateButton from "./components/GenerateButton";
 import FeedbackResult from "./components/FeedbackResult";
 import HistoryModal from "./components/HistoryModal";
+import HeaderTitle from "./components/HeaderTitle";
 
 export default function CreatePage() {
   const [image, setImage] = useState<string | null>(null);
@@ -146,9 +147,7 @@ export default function CreatePage() {
           px-4 py-3 flex items-center justify-between
         "
       >
-        <h1 className="text-lg font-semibold tracking-tight text-gray-900">
-          Feedback Generator
-        </h1>
+        <HeaderTitle />
 
         <button
           onClick={() => setHistoryOpen(true)}
