@@ -21,6 +21,15 @@ const ExcalidrawModal = dynamic(
   { ssr: false }
 );
 
+// ✅ Blob → Base64 변환 함수
+function blobToDataURL(blob: Blob): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export default function CreatePage() {
   const [image, setImage] = useState<string | null>(null);
   const [editedBlob, setEditedBlob] = useState<Blob | null>(null);
@@ -102,13 +111,15 @@ export default function CreatePage() {
     return () => clearTimeout(timer);
   }, [aiResponse, loadingStage, lastStageStart]);
 
-  // 🔥 Excalidraw 저장 결과 처리 — Blob → URL 변환
+  // ✅ Excalidraw 저장 결과 처리 — Blob → Base64 변환
   const handleSaveEditedImage = async (blob: Blob) => {
     setEditedBlob(blob);
 
     // Blob → Base64 URL 변환
-    const url = URL.createObjectURL(blob);
-    setImage(url); // 이미지 프리뷰 업데이트
+    const dataUrl = await blobToDataURL(blob);
+
+    // 이미지 프리뷰 & 저장용 업데이트
+    setImage(dataUrl);
   };
 
   // AI 피드백 생성
@@ -125,7 +136,7 @@ export default function CreatePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         body: JSON.stringify({
-          image,
+          image, // Base64로 전달됨
           feedback_raw: feedbackRaw,
           mode,
         }),
@@ -136,7 +147,7 @@ export default function CreatePage() {
 
       saveHistory({
         id: crypto.randomUUID(),
-        image,
+        image, // Base64 저장
         raw: feedbackRaw,
         result: data.result,
         mode,
@@ -156,7 +167,7 @@ export default function CreatePage() {
   };
 
   const handleLoadRecord = (record: any) => {
-    setImage(record.image);
+    setImage(record.image); // Base64 불러오기 OK
     setFeedbackRaw(record.raw);
     setMode(record.mode);
     setResult(record.result);
