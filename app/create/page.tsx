@@ -9,14 +9,14 @@ import GenerateButton from "./components/GenerateButton";
 import FeedbackResult from "./components/FeedbackResult";
 import HistoryModal from "./components/HistoryModal";
 import HeaderTitle from "./components/HeaderTitle";
+
+// 🔥 새로 추가
 import EditImageButton from "./components/EditImageButton";
 import ExcalidrawModal from "./components/ExcalidrawModal";
 
 export default function CreatePage() {
-  // 현재 썸네일로 보여줄 이미지 (원본 또는 편집본)
   const [image, setImage] = useState<string | null>(null);
-  // 업로드된 원본 이미지 (편집을 여러 번 하더라도 기준이 되는 값)
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [editedBlob, setEditedBlob] = useState<Blob | null>(null);
 
   const [feedbackRaw, setFeedbackRaw] = useState("");
   const [mode, setMode] = useState<"messenger" | "email">("messenger");
@@ -30,8 +30,8 @@ export default function CreatePage() {
 
   const [isHistoryOpen, setHistoryOpen] = useState(false);
 
-  // 이미지 편집 모달
-  const [isEditorOpen, setEditorOpen] = useState(false);
+  // 🔥 Excalidraw 모달
+  const [isExcalidrawOpen, setExcalidrawOpen] = useState(false);
 
   // 🔥 토스트 상태
   const [toast, setToast] = useState(false);
@@ -48,6 +48,7 @@ export default function CreatePage() {
     "결과를 정돈하는 중…",
   ];
 
+  // 로딩 단계 스텝 처리
   useEffect(() => {
     if (!loading) return;
 
@@ -76,6 +77,7 @@ export default function CreatePage() {
     return () => clearTimeout(timer);
   }, [loading]);
 
+  // AI 응답 처리
   useEffect(() => {
     if (!aiResponse) return;
     if (loadingStage < 2) return;
@@ -93,6 +95,16 @@ export default function CreatePage() {
     return () => clearTimeout(timer);
   }, [aiResponse, loadingStage, lastStageStart]);
 
+  // 🔥 Excalidraw 저장 결과 처리 — Blob → URL 변환
+  const handleSaveEditedImage = async (blob: Blob) => {
+    setEditedBlob(blob);
+
+    // Blob → Base64 URL 변환
+    const url = URL.createObjectURL(blob);
+    setImage(url); // 이미지 프리뷰 업데이트
+  };
+
+  // AI 피드백 생성
   const handleGenerate = async () => {
     if (!feedbackRaw.trim()) {
       return alert("피드백 텍스트를 입력해주세요.");
@@ -106,7 +118,6 @@ export default function CreatePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         body: JSON.stringify({
-          // 현재 화면에 보이는 이미지를 그대로 사용 (편집 반영)
           image,
           feedback_raw: feedbackRaw,
           mode,
@@ -139,7 +150,6 @@ export default function CreatePage() {
 
   const handleLoadRecord = (record: any) => {
     setImage(record.image);
-    setUploadedImage(record.image); // 불러온 기록 기준으로 다시 편집 가능
     setFeedbackRaw(record.raw);
     setMode(record.mode);
     setResult(record.result);
@@ -175,20 +185,12 @@ export default function CreatePage() {
 
       {/* ---------------- Card ---------------- */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6">
-        {/* 이미지 업로드 + 썸네일 */}
-        <ImageUpload
-          image={image}
-          setImage={(value: string | null) => {
-            setImage(value);
-            setUploadedImage(value);
-          }}
-        />
+        <ImageUpload image={image} setImage={setImage} />
 
-        {/* 이미지 편집 버튼 */}
-        <EditImageButton
-          disabled={!uploadedImage}
-          onClick={() => uploadedImage && setEditorOpen(true)}
-        />
+        {/* 🔥 이미지 편집 버튼 */}
+        {image && (
+          <EditImageButton onClick={() => setExcalidrawOpen(true)} />
+        )}
 
         <FeedbackEditor value={feedbackRaw} onChange={setFeedbackRaw} />
 
@@ -203,7 +205,7 @@ export default function CreatePage() {
         <FeedbackResult
           result={result}
           onCopy={() => navigator.clipboard.writeText(result || "")}
-          onCopySuccess={showToast} // 🔥 여기서 토스트 작동!
+          onCopySuccess={showToast}
           onReset={() => setResult(null)}
         />
       </div>
@@ -214,16 +216,11 @@ export default function CreatePage() {
         onLoadRecord={handleLoadRecord}
       />
 
-      {/* Excalidraw 이미지 편집 모달 */}
+      {/* 🔥 Excalidraw Modal 연결 */}
       <ExcalidrawModal
-        isOpen={isEditorOpen}
-        onClose={() => setEditorOpen(false)}
-        baseImage={uploadedImage}
-        onApply={(dataUrl: string) => {
-          setImage(dataUrl);         // 썸네일 교체
-          setUploadedImage(dataUrl); // 이후 다시 편집해도 편집본 기준
-          setEditorOpen(false);
-        }}
+        open={isExcalidrawOpen}
+        onClose={() => setExcalidrawOpen(false)}
+        onSave={handleSaveEditedImage}
       />
 
       {/* ---------------- Toast ---------------- */}
