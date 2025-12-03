@@ -7,14 +7,14 @@ import { Analytics } from "@vercel/analytics/react";
 export const metadata = {
   title: "말만 하세요. 찰떡같이 정리된 피드백이 완성됩니다.",
   description:
-    "스크린샷과 간단한 메모만 올리면, 디자이너가 바로 이해할 수 있는 명확한 피드백 문장으로 자동 변환해드립니다.",
+    "이미지와 간단한 메모만 올리면, 디자이너가 바로 이해할 수 있는 명확한 피드백 문장으로 자동 변환해드립니다.",
   openGraph: {
     title: "말만 하세요. 찰떡같이 정리된 피드백이 완성됩니다.",
     description:
-      "스크린샷과 메모만 올리면 명확한 디자인 피드백으로 자동 변환하는 AI 도구.",
+      "이미지와 메모만 올리면 명확한 디자인 피드백으로 자동 변환하는 AI 도구.",
     type: "website",
     locale: "ko_KR",
-    siteName: "Feedback Generator",
+    siteName: "Feedback AI",
     images: [
       {
         url: "/og.png",
